@@ -44,8 +44,6 @@ class Polystar {
 	}
 
 	draw(ctx: CanvasRenderingContext2D, time: number) {
-		//todo add trim
-
 		const points = this.points.getValue(time)
 		const innerRadius = this.innerRadius.getValue(time)
 		const outerRadius = this.outerRadius.getValue(time)

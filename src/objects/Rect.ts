@@ -1,6 +1,5 @@
 import Property from '../property/Property'
 import AnimatedProperty from '../property/AnimatedProperty'
-import { TrimValues } from '../property/Trim'
 
 type Options = {
 	size: []
@@ -28,7 +27,7 @@ class Rect {
 		}
 	}
 
-	draw(ctx: CanvasRenderingContext2D, time: number, trim: TrimValues) {
+	draw(ctx: CanvasRenderingContext2D, time: number) {
 		const size = this.size.getValue(time)
 		const position = this.position ? this.position.getValue(time) : [0, 0]
 		let roundness = this.roundness ? this.roundness.getValue(time) : 0
@@ -39,17 +38,11 @@ class Rect {
 		const x = position[0] - size[0] / 2
 		const y = position[1] - size[1] / 2
 
-		if (trim) {
-			// let tv;
-			// trim = this.getTrimValues(trim);
-			//TODO add trim
-		} else {
-			ctx.moveTo(x + roundness, y)
-			ctx.arcTo(x + size[0], y, x + size[0], y + size[1], roundness)
-			ctx.arcTo(x + size[0], y + size[1], x, y + size[1], roundness)
-			ctx.arcTo(x, y + size[1], x, y, roundness)
-			ctx.arcTo(x, y, x + size[0], y, roundness)
-		}
+		ctx.moveTo(x + roundness, y)
+		ctx.arcTo(x + size[0], y, x + size[0], y + size[1], roundness)
+		ctx.arcTo(x + size[0], y + size[1], x, y + size[1], roundness)
+		ctx.arcTo(x, y + size[1], x, y, roundness)
+		ctx.arcTo(x, y, x + size[0], y, roundness)
 	}
 
 	setKeyframes(time: number) {

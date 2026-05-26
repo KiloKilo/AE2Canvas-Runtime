@@ -5,43 +5,35 @@ import Ellipse from './Ellipse'
 import Polystar from './Polystar'
 import AnimatedPath from './AnimatedPath'
 import Fill, { FillProps } from '../property/Fill'
-import GradientFill, { GradientFillProps } from '../property/GradientFill'
 import Transform, { TransformProps } from '../transform/Transform'
-import Trim, { TrimProps, TrimValues } from '../property/Trim'
-import { Gradients } from '../Animation'
 
 type GroupProps = {
 	transform: TransformProps
 	shapes: PathProps[]
 	groups: GroupProps[]
-	trim: TrimProps
 	stroke: StrokeProps
-	gradientFill: GradientFillProps
 	fill: FillProps
 	index: number
 }
 
 class Group {
 	private index: number
-	private fill?: Fill | GradientFill
+	private fill?: Fill
 	private stroke?: Stroke
-	private trim?: Trim
 	private groups?: Group[]
 	private shapes?: (Path | Rect | Ellipse | Polystar)[]
 	private transform: Transform
 
-	constructor(data: GroupProps, gradients: Gradients) {
+	constructor(data: GroupProps) {
 		this.index = data.index
 
 		if (data.fill) this.fill = new Fill(data.fill)
-		if (data.gradientFill) this.fill = new GradientFill(data.gradientFill, gradients)
 		if (data.stroke) this.stroke = new Stroke(data.stroke)
-		if (data.trim) this.trim = new Trim(data.trim)
 
 		this.transform = new Transform(data.transform)
 
 		if (data.groups) {
-			this.groups = data.groups.map((group) => new Group(group, gradients))
+			this.groups = data.groups.map((group) => new Group(group))
 		}
 
 		if (data.shapes) {
@@ -61,19 +53,12 @@ class Group {
 		}
 	}
 
-	draw(
-		ctx: CanvasRenderingContext2D,
-		time: number,
-		parentFill: Fill | GradientFill,
-		parentStroke: Stroke,
-		parentTrim: TrimValues
-	) {
+	draw(ctx: CanvasRenderingContext2D, time: number, parentFill: Fill, parentStroke: Stroke) {
 		ctx.save()
 
 		//TODO check if color/stroke is changing over time
 		const fill = this.fill || parentFill
 		const stroke = this.stroke || parentStroke
-		const trimValues = this.trim ? this.trim.getTrim(time) : parentTrim
 
 		if (fill) fill.update(ctx, time)
 		if (stroke) stroke.update(ctx, time)
@@ -82,7 +67,7 @@ class Group {
 
 		ctx.beginPath()
 		if (this.shapes) {
-			this.shapes.forEach((shape) => shape.draw(ctx, time, trimValues))
+			this.shapes.forEach((shape) => shape.draw(ctx, time))
 			if (this.shapes[this.shapes.length - 1].closed) {
 				// ctx.closePath();
 			}
@@ -92,7 +77,7 @@ class Group {
 		if (fill) ctx.fill()
 		if (stroke) ctx.stroke()
 
-		if (this.groups) this.groups.forEach((group) => group.draw(ctx, time, fill, stroke, trimValues))
+		if (this.groups) this.groups.forEach((group) => group.draw(ctx, time, fill, stroke))
 
 		ctx.restore()
 	}
@@ -105,7 +90,6 @@ class Group {
 
 		if (this.fill) this.fill.setKeyframes(time)
 		if (this.stroke) this.stroke.setKeyframes(time)
-		if (this.trim) this.trim.setKeyframes(time)
 	}
 
 	reset(reversed: boolean) {
@@ -116,7 +100,6 @@ class Group {
 
 		if (this.fill) this.fill.reset(reversed)
 		if (this.stroke) this.stroke.reset(reversed)
-		if (this.trim) this.trim.reset(reversed)
 	}
 }
 

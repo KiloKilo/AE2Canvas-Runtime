@@ -1,20 +1,14 @@
 import Path, { PathProps } from '../objects/Path'
 import AnimatedPath from '../objects/AnimatedPath'
 import Transform, { TransformProps } from '../transform/Transform'
-import DropShadow from '../effects/DropShadow'
 import BlendingMode from '../property/BlendingMode'
 import Fill, { FillProps } from '../property/Fill'
-import GradientFill, { GradientFillProps } from '../property/GradientFill'
 import Stroke, { StrokeProps } from '../property/Stroke'
-import { TrimProps, TrimValues } from '../property/Trim'
-import Blur from '../effects/Blur'
 
 export type BaseLayerProps = {
 	shapes: PathProps[]
 	groups: []
-	trim: TrimProps
 	stroke: StrokeProps
-	gradientFill: GradientFillProps
 	fill: FillProps
 	type: LayerType
 	justification: CanvasTextAlign
@@ -45,8 +39,6 @@ export type LayerType = 'base' | 'vector' | 'image' | 'text' | 'comp' | 'null'
 
 class BaseLayer {
 	private readonly blendMode?: BlendingMode
-	private readonly dropShadow?: DropShadow
-	private readonly blur?: Blur
 	private readonly masks?: (AnimatedPath | Path)[]
 
 	public type: LayerType = 'base'
@@ -71,35 +63,18 @@ class BaseLayer {
 		if (data.blendMode) this.blendMode = new BlendingMode(data.blendMode)
 		this.transform = new Transform(data.transform)
 
-		if (data.effects?.dropShadow) {
-			this.dropShadow = new DropShadow(data.effects.dropShadow)
-		}
-		if (data.effects?.blur) {
-			this.blur = new Blur(data.effects.blur)
-		}
-
 		if (data.masks) {
 			this.masks = data.masks.map((mask) => (mask.isAnimated ? new AnimatedPath(mask) : new Path(mask)))
 		}
 	}
 
-	draw(
-		ctx: CanvasRenderingContext2D,
-		time: number,
-		scale: number,
-		parentFill?: Fill | GradientFill,
-		parentStroke?: Stroke,
-		parentTrim?: TrimValues
-	) {
+	draw(ctx: CanvasRenderingContext2D, time: number, scale: number, parentFill?: Fill, parentStroke?: Stroke) {
 		ctx.save()
 
 		this.parent?.setParentTransform(ctx, time)
 		this.blendMode?.setCompositeOperation(ctx)
 
 		this.transform.update(ctx, time)
-
-		this.dropShadow?.setShadow(ctx, time)
-		this.blur?.setBlur(ctx, time, scale)
 
 		if (this.masks) {
 			ctx.beginPath()

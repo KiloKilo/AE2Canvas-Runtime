@@ -5,7 +5,6 @@ import BaseLayer, { BaseLayerProps } from './BaseLayer'
 import VectorLayer from './VectorLayer'
 import Property from '../property/Property'
 import AnimatedProperty from '../property/AnimatedProperty'
-import { Gradients } from '../Animation'
 
 class CompLayer extends BaseLayer {
 	public readonly type = 'comp'
@@ -14,7 +13,6 @@ class CompLayer extends BaseLayer {
 		data: BaseLayerProps,
 		comps: { [key: string]: BaseLayerProps },
 		baseFont: string | undefined,
-		gradients: Gradients,
 		imageBasePath: string
 	) {
 		super(data)
@@ -27,13 +25,13 @@ class CompLayer extends BaseLayer {
 				.map((layer) => {
 					switch (layer.type) {
 						case 'vector':
-							return new VectorLayer(layer, gradients)
+							return new VectorLayer(layer)
 						case 'image':
 							return new ImageLayer(layer, imageBasePath)
 						case 'text':
 							return new TextLayer(layer, baseFont)
 						case 'comp':
-							return new CompLayer(layer, comps, baseFont, gradients, imageBasePath)
+							return new CompLayer(layer, comps, baseFont, imageBasePath)
 						case 'null':
 							return new NullLayer(layer)
 					}

@@ -5,7 +5,6 @@ import NullLayer from './layers/NullLayer'
 import TextLayer from './layers/TextLayer'
 import CompLayer from './layers/CompLayer'
 import VectorLayer from './layers/VectorLayer'
-import GradientFill from './property/GradientFill'
 import BaseLayer, { BaseLayerProps } from './layers/BaseLayer'
 
 type Marker = {
@@ -33,10 +32,7 @@ type AnimationProps = {
 	}
 }
 
-export type Gradients = { [key: string]: GradientFill[] }
-
 class Animation extends Emitter {
-	private readonly gradients: Gradients
 	private readonly duration: number
 	private readonly baseWidth: number
 	private readonly baseHeight: number
@@ -64,7 +60,6 @@ class Animation extends Emitter {
 	constructor(options: AnimationProps) {
 		super()
 
-		this.gradients = {}
 		this.duration = options.data.duration
 		this.baseWidth = options.data.width
 		this.baseHeight = options.data.height
@@ -87,13 +82,13 @@ class Animation extends Emitter {
 		this.layers = options.data.layers.map((layer: BaseLayerProps) => {
 			switch (layer.type) {
 				case 'vector':
-					return new VectorLayer(layer, this.gradients)
+					return new VectorLayer(layer)
 				case 'image':
 					return new ImageLayer(layer, this.imageBasePath)
 				case 'text':
 					return new TextLayer(layer, this.baseFont)
 				case 'comp':
-					return new CompLayer(layer, comps, this.baseFont, this.gradients, this.imageBasePath)
+					return new CompLayer(layer, comps, this.baseFont, this.imageBasePath)
 				case 'null':
 				default:
 					return new NullLayer(layer)
@@ -230,64 +225,6 @@ class Animation extends Emitter {
 			this.ctx?.transform(this.scale, 0, 0, this.scale, 0, 0)
 			this.setKeyframes(this.time)
 			this.drawFrame = true
-		}
-	}
-
-	setGradients(name: string, stops: any) {
-		if (!this.gradients[name]) {
-			console.warn(`Gradient with name: ${name} not found.`)
-			return
-		}
-
-		this.gradients[name].forEach((gradient) => {
-			gradient.stops = stops
-		})
-	}
-
-	getSpriteSheet(fps = 25, width = 50, maxWidth = 4096) {
-		const ratio = width / this.baseWidth
-		const height = this.baseHeight * ratio
-		const numFrames = Math.floor((this.duration / 1000) * fps)
-		const buffer = document.createElement('canvas')
-		const ctx = buffer.getContext('2d')
-
-		const rowsX = Math.floor(maxWidth / width)
-		const rowsY = Math.ceil(numFrames / rowsX)
-
-		let indexX = 0
-		let indexY = 0
-
-		buffer.width = rowsX * width
-		buffer.height = rowsY * height
-
-		this.resize(width)
-
-		for (let i = 0; i < numFrames; i++) {
-			const step = i / numFrames
-			const time = step * this.duration
-			this.setKeyframes(time)
-			this.draw(time)
-
-			const x = indexX * width
-			const y = indexY * height
-
-			if (indexX + 1 >= rowsX) {
-				indexX = 0
-				indexY++
-			} else {
-				indexX++
-			}
-
-			ctx?.drawImage(this.canvas, x, y, width, height)
-		}
-
-		return {
-			frames: numFrames,
-			canvas: buffer,
-			offsetX: width,
-			offsetY: height,
-			rowsX,
-			rowsY,
 		}
 	}
 
