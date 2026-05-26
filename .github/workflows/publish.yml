@@ -1,9 +1,9 @@
-name: Publish to npm
+name: publish
 
 on:
   push:
     tags:
-      - 'v*.*.*' # Triggers on semantic version tags (e.g., v1.0.0)
+      - "v*.*.*"
 
 jobs:
   publish:
