@@ -1,0 +1,37 @@
+name: Publish to npm
+
+on:
+  push:
+    tags:
+      - 'v*.*.*' # Triggers on semantic version tags (e.g., v1.0.0)
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/tools/node@v4
+        with:
+          node-version: 'lts/*'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build # Ensures your 'dist' folder is generated
+
+      - name: Prepare dist for publishing
+        run: |
+          # Copy package.json and README into the dist folder so npm knows what to publish
+          cp package.json dist/
+          cp README.md dist/ 2>/dev/null || : 
+          
+          # Optional: If you have a LICENSE file, copy it too
+          cp LICENSE dist/ 2>/dev/null || :
+
+      - name: Publish to npm
+        run: npm publish dist
