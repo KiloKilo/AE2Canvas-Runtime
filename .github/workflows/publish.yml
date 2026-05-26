@@ -2,9 +2,8 @@ name: publish
 
 on:
   push:
-    tags:
-      - "v*.*.*"
-
+    branches:
+      - main
 jobs:
   publish:
     runs-on: ubuntu-latest
